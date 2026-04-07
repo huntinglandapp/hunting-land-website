@@ -170,7 +170,7 @@ BASE = '''<!DOCTYPE html>
   </div>
 </nav>
 
-{{ content }}
+{{ content | safe }}
 
 <footer>
   <div>
