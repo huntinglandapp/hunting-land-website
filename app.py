@@ -20,17 +20,17 @@ app = Flask(__name__)
 # ── Gumroad product config ───────────────────────────────────────────────────
 # These permalink slugs must match exactly what you set on Gumroad
 TOKEN_PACKS = {
-    'tokens-50':  50,
-    'tokens-200': 200,
-    'tokens-500': 500,
+    'tokens-200':  200,
+    'tokens-500':  500,
+    'tokens-1000': 1000,
 }
 
 GUMROAD_SELLER_ID = os.environ.get('GUMROAD_SELLER_ID', '')
 
 BUY_LINKS = {
-    50:     os.environ.get('GUMROAD_LINK_50',     '#'),
-    200:    os.environ.get('GUMROAD_LINK_200',    '#'),
-    500:    os.environ.get('GUMROAD_LINK_500',    '#'),
+    200:      os.environ.get('GUMROAD_LINK_200',    '#'),
+    500:      os.environ.get('GUMROAD_LINK_500',    '#'),
+    1000:     os.environ.get('GUMROAD_LINK_1000',   '#'),
     'custom': os.environ.get('GUMROAD_LINK_CUSTOM', '#'),  # "Pay what you want" Gumroad product
 }
 
@@ -349,26 +349,27 @@ TOKENS_CONTENT = '''
   <div class="section-title">Token Packs</div>
   <div class="price-grid">
     <div class="price-card">
-      <div class="tokens">50</div>
-      <div class="token-label">tokens</div>
-      <div class="price">$2.50</div>
-      <div class="per">$0.05 per photo</div>
-      <a class="btn btn-ghost" href="{{ buy_50 }}" target="_blank">Buy Now</a>
-    </div>
-    <div class="price-card popular">
-      <div class="popular-badge">BEST VALUE</div>
       <div class="tokens">200</div>
       <div class="token-label">tokens</div>
       <div class="price">$8.00</div>
       <div class="per">$0.04 per photo</div>
-      <a class="btn btn-green" href="{{ buy_200 }}" target="_blank">Buy Now</a>
+      <a class="btn btn-ghost" href="{{ buy_200 }}" target="_blank">Buy Now</a>
     </div>
-    <div class="price-card">
+    <div class="price-card popular">
+      <div class="popular-badge">MOST POPULAR</div>
       <div class="tokens">500</div>
       <div class="token-label">tokens</div>
       <div class="price">$18.00</div>
       <div class="per">$0.036 per photo</div>
-      <a class="btn btn-tan" href="{{ buy_500 }}" target="_blank">Buy Now</a>
+      <a class="btn btn-green" href="{{ buy_500 }}" target="_blank">Buy Now</a>
+    </div>
+    <div class="price-card">
+      <div class="popular-badge" style="background:var(--tan); color:#111;">BEST VALUE</div>
+      <div class="tokens">1,000</div>
+      <div class="token-label">tokens</div>
+      <div class="price">$34.00</div>
+      <div class="per">$0.034 per photo</div>
+      <a class="btn btn-tan" href="{{ buy_1000 }}" target="_blank">Buy Now</a>
     </div>
   </div>
 
@@ -386,26 +387,26 @@ TOKENS_CONTENT = '''
                 onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">&#x2B;</button>
       </div>
       <div>
-        <div style="font-size:28px; font-weight:800; color:var(--text);" id="custom-tokens">500 tokens</div>
-        <div style="font-size:13px; color:var(--muted);" id="custom-rate">$0.036 per photo</div>
+        <div style="font-size:28px; font-weight:800; color:var(--text);" id="custom-tokens">1,000 tokens</div>
+        <div style="font-size:13px; color:var(--muted);" id="custom-rate">$0.034 per photo</div>
       </div>
       <div style="margin-left:auto; text-align:right;">
         <div style="font-size:13px; color:var(--muted);">Total</div>
-        <div style="font-size:32px; font-weight:800; color:var(--tan);" id="custom-price">$18.00</div>
+        <div style="font-size:32px; font-weight:800; color:var(--tan);" id="custom-price">$34.00</div>
       </div>
     </div>
 
     <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:16px; font-size:13px; color:var(--muted);">
-      &#x2139;&#xFE0F;&nbsp; When you click Buy, Gumroad will open. Enter <strong id="custom-price-note">$18.00</strong> as the payment amount. Your tokens will be credited automatically based on the amount paid.
+      &#x2139;&#xFE0F;&nbsp; When you click Buy, Gumroad will open. Enter <strong id="custom-price-note">$34.00</strong> as the payment amount. Your tokens will be credited automatically based on the amount paid.
     </div>
 
-    <a id="custom-buy-btn" class="btn btn-green" href="{{ buy_custom }}" target="_blank" style="display:inline-block;">Buy <span id="custom-btn-tokens">500</span> Tokens for <span id="custom-btn-price">$18.00</span></a>
+    <a id="custom-buy-btn" class="btn btn-green" href="{{ buy_custom }}" target="_blank" style="display:inline-block;">Buy <span id="custom-btn-tokens">1,000</span> Tokens for <span id="custom-btn-price">$34.00</span></a>
   </div>
 
   <script>
   var customPacks = 1;
-  var PACK_SIZE  = 500;
-  var PACK_PRICE = 18.00;
+  var PACK_SIZE  = 1000;
+  var PACK_PRICE = 34.00;
 
   function changeCustom(delta) {
     customPacks = Math.max(1, customPacks + delta);
@@ -554,9 +555,9 @@ def photo_sorter():
 @app.route('/tokens')
 def tokens():
     content = render_template_string(TOKENS_CONTENT,
-                                     buy_50=BUY_LINKS[50],
                                      buy_200=BUY_LINKS[200],
                                      buy_500=BUY_LINKS[500],
+                                     buy_1000=BUY_LINKS[1000],
                                      buy_custom=BUY_LINKS['custom'])
     return render_template_string(BASE, title='Buy Tokens', active='tokens', content=content)
 
@@ -590,7 +591,7 @@ def webhook_gumroad():
         # Check if this is a custom-amount purchase — calculate tokens from price paid
         if product_slug == 'tokens-custom':
             price_cents = int(data.get('price', 0))   # Gumroad sends price in cents
-            tokens_to_add = round(price_cents / 1800) * 500  # $18.00 = 500 tokens
+            tokens_to_add = round(price_cents / 3400) * 1000  # $34.00 = 1000 tokens
             if tokens_to_add <= 0:
                 return jsonify({'error': 'Could not determine token amount from price'}), 400
         else:
