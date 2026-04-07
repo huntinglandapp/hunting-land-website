@@ -28,9 +28,10 @@ TOKEN_PACKS = {
 GUMROAD_SELLER_ID = os.environ.get('GUMROAD_SELLER_ID', '')
 
 BUY_LINKS = {
-    50:  os.environ.get('GUMROAD_LINK_50',  '#'),
-    200: os.environ.get('GUMROAD_LINK_200', '#'),
-    500: os.environ.get('GUMROAD_LINK_500', '#'),
+    50:     os.environ.get('GUMROAD_LINK_50',     '#'),
+    200:    os.environ.get('GUMROAD_LINK_200',    '#'),
+    500:    os.environ.get('GUMROAD_LINK_500',    '#'),
+    'custom': os.environ.get('GUMROAD_LINK_CUSTOM', '#'),  # "Pay what you want" Gumroad product
 }
 
 # ── Firebase Admin (lazy init) ───────────────────────────────────────────────
@@ -371,6 +372,56 @@ TOKENS_CONTENT = '''
     </div>
   </div>
 
+  <!-- Custom amount calculator -->
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:28px; margin-bottom:24px;">
+    <div style="font-size:18px; font-weight:700; color:var(--tan); margin-bottom:6px;">&#x1F9EE; Custom Amount</div>
+    <div style="font-size:13px; color:var(--muted); margin-bottom:20px;">Need more tokens? Choose any amount in increments of 500 — the more you buy, the better the rate.</div>
+
+    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
+      <div style="display:flex; align-items:center; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+        <button onclick="changeCustom(-1)" style="background:var(--surface); border:none; color:var(--text); font-size:20px; width:44px; height:44px; cursor:pointer; transition:background .15s;"
+                onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">&#x2212;</button>
+        <div style="padding:0 20px; font-size:18px; font-weight:700; color:var(--text); background:var(--bg); height:44px; display:flex; align-items:center;" id="custom-packs">1</div>
+        <button onclick="changeCustom(1)" style="background:var(--surface); border:none; color:var(--text); font-size:20px; width:44px; height:44px; cursor:pointer; transition:background .15s;"
+                onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">&#x2B;</button>
+      </div>
+      <div>
+        <div style="font-size:28px; font-weight:800; color:var(--text);" id="custom-tokens">500 tokens</div>
+        <div style="font-size:13px; color:var(--muted);" id="custom-rate">$0.036 per photo</div>
+      </div>
+      <div style="margin-left:auto; text-align:right;">
+        <div style="font-size:13px; color:var(--muted);">Total</div>
+        <div style="font-size:32px; font-weight:800; color:var(--tan);" id="custom-price">$18.00</div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:16px; font-size:13px; color:var(--muted);">
+      &#x2139;&#xFE0F;&nbsp; When you click Buy, Gumroad will open. Enter <strong id="custom-price-note">$18.00</strong> as the payment amount. Your tokens will be credited automatically based on the amount paid.
+    </div>
+
+    <a id="custom-buy-btn" class="btn btn-green" href="{{ buy_custom }}" target="_blank" style="display:inline-block;">Buy <span id="custom-btn-tokens">500</span> Tokens for <span id="custom-btn-price">$18.00</span></a>
+  </div>
+
+  <script>
+  var customPacks = 1;
+  var PACK_SIZE  = 500;
+  var PACK_PRICE = 18.00;
+
+  function changeCustom(delta) {
+    customPacks = Math.max(1, customPacks + delta);
+    var tokens = customPacks * PACK_SIZE;
+    var price  = (customPacks * PACK_PRICE).toFixed(2);
+    var rate   = (PACK_PRICE / PACK_SIZE).toFixed(4);
+    document.getElementById('custom-packs').textContent  = customPacks;
+    document.getElementById('custom-tokens').textContent = tokens.toLocaleString() + ' tokens';
+    document.getElementById('custom-price').textContent  = '$' + price;
+    document.getElementById('custom-rate').textContent   = '$' + rate + ' per photo';
+    document.getElementById('custom-price-note').textContent = '$' + price;
+    document.getElementById('custom-btn-tokens').textContent = tokens.toLocaleString();
+    document.getElementById('custom-btn-price').textContent  = '$' + price;
+  }
+  </script>
+
   <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom: 48px; font-size:14px; color:var(--muted);">
     &#x2139;&#xFE0F;&nbsp; After purchase you will receive a confirmation email from Gumroad. Your tokens will be added to your account automatically within a few minutes. Make sure the email you use for Gumroad matches your Hunting Land app login email.
   </div>
@@ -479,8 +530,15 @@ PRIVACY_CONTENT = '''
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
-ANIMALS = ['Buck', 'Doe', 'Fawn', 'Bear', 'Coyote', 'Turkey', 'Raccoon',
-           'Fox', 'Hog', 'Bobcat', 'Squirrel', 'Bird', 'Other Animal', 'No Animal']
+ANIMALS = [
+    'Buck', 'Doe', 'Fawn',
+    'Bull Elk', 'Cow Elk',
+    'Moose', 'Pronghorn', 'Mule Deer',
+    'Bear', 'Mountain Lion', 'Wolf',
+    'Coyote', 'Turkey', 'Raccoon',
+    'Fox', 'Hog', 'Bobcat',
+    'Squirrel', 'Bird', 'Other Animal', 'No Animal',
+]
 
 @app.route('/')
 def home():
@@ -498,7 +556,8 @@ def tokens():
     content = render_template_string(TOKENS_CONTENT,
                                      buy_50=BUY_LINKS[50],
                                      buy_200=BUY_LINKS[200],
-                                     buy_500=BUY_LINKS[500])
+                                     buy_500=BUY_LINKS[500],
+                                     buy_custom=BUY_LINKS['custom'])
     return render_template_string(BASE, title='Buy Tokens', active='tokens', content=content)
 
 @app.route('/privacy')
@@ -528,8 +587,15 @@ def webhook_gumroad():
 
     tokens_to_add = TOKEN_PACKS.get(product_slug)
     if tokens_to_add is None:
-        print(f"Webhook: unknown product slug '{product_slug}'")
-        return jsonify({'ok': True, 'note': 'Product not a token pack — ignored'})
+        # Check if this is a custom-amount purchase — calculate tokens from price paid
+        if product_slug == 'tokens-custom':
+            price_cents = int(data.get('price', 0))   # Gumroad sends price in cents
+            tokens_to_add = round(price_cents / 1800) * 500  # $18.00 = 500 tokens
+            if tokens_to_add <= 0:
+                return jsonify({'error': 'Could not determine token amount from price'}), 400
+        else:
+            print(f"Webhook: unknown product slug '{product_slug}'")
+            return jsonify({'ok': True, 'note': 'Product not a token pack — ignored'})
 
     if refunded:
         tokens_to_add = -tokens_to_add  # deduct on refund
