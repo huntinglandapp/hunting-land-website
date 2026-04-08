@@ -34,6 +34,9 @@ BUY_LINKS = {
     'custom': os.environ.get('GUMROAD_LINK_CUSTOM', '#'),  # "Pay what you want" Gumroad product
 }
 
+# Windows installer download link — set this to your Gumroad product link once uploaded
+WINDOWS_DOWNLOAD_URL = os.environ.get('WINDOWS_DOWNLOAD_URL', '#')
+
 # ── Firebase Admin (lazy init) ───────────────────────────────────────────────
 _fb_app  = None
 _fb_auth = None
@@ -301,13 +304,13 @@ SORTER_CONTENT = '''
       <h2>&#x1FA9F; Windows</h2>
       <div class="platform">Windows 10 / 11</div>
       <p>Download the installer, double-click to install, and you're ready to go. No Python or technical knowledge required.</p>
-      <a class="btn btn-green" href="#" target="_blank">Download for Windows</a>
+      <a class="btn btn-green" href="{{ windows_download }}" target="_blank">Download for Windows</a>
     </div>
-    <div class="app-card">
+    <div class="app-card" style="opacity:0.6;">
       <h2>&#x1F34E; Mac</h2>
-      <div class="platform">macOS 11 (Big Sur) or later</div>
-      <p>Download the .app bundle, open it, and allow it in System Preferences &rarr; Security if prompted.</p>
-      <a class="btn btn-green" href="#" target="_blank">Download for Mac</a>
+      <div class="platform">macOS &mdash; Coming Soon</div>
+      <p>The Mac version is currently in development. Check back soon or sign up below to be notified when it's available.</p>
+      <span class="btn btn-ghost" style="cursor:default; text-align:center; display:block;">Coming Soon</span>
     </div>
   </div>
 
@@ -549,7 +552,7 @@ def home():
 
 @app.route('/photo-sorter')
 def photo_sorter():
-    content = render_template_string(SORTER_CONTENT, animals=ANIMALS)
+    content = render_template_string(SORTER_CONTENT, animals=ANIMALS, windows_download=WINDOWS_DOWNLOAD_URL)
     return render_template_string(BASE, title='Photo Sorter', active='sorter', content=content)
 
 @app.route('/tokens')
