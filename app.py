@@ -183,6 +183,7 @@ BASE = '''<!DOCTYPE html>
     <a href="/tokens">Buy Tokens</a>
     <a href="/privacy">Privacy Policy</a>
   </div>
+  <div style="margin-top:8px;"><a href="/delete-account">Delete My Account</a></div>
   <div style="margin-top:10px;">&copy; 2025 Hunting Land Apps. All rights reserved.</div>
 </footer>
 
@@ -457,6 +458,77 @@ TOKENS_CONTENT = '''
 '''
 
 
+# ── Delete Account page ──────────────────────────────────────────────────────
+DELETE_CONTENT = '''
+<div class="container">
+  <div class="prose">
+    <h1 style="font-size:26px; color:var(--tan); margin-bottom:8px;">Delete Your Account</h1>
+    <p>If you would like to delete your Hunting Land account and all associated data, please submit your request below. We will process your request within 30 days.</p>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; margin:24px 0;">
+      <p style="margin-bottom:6px; font-size:13px; color:var(--muted);">&#x26A0;&#xFE0F; &nbsp;Deleting your account will permanently remove:</p>
+      <ul>
+        <li>Your login credentials</li>
+        <li>All stand, camera, food plot, and sign locations</li>
+        <li>All harvest logs and journal entries</li>
+        <li>All trail camera photos you uploaded to the app</li>
+        <li>Your remaining Photo Sorter token balance</li>
+      </ul>
+      <p style="margin-top:10px; font-size:13px; color:var(--muted);">This action cannot be undone.</p>
+    </div>
+
+    <div id="delete-form">
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:14px; color:var(--text); margin-bottom:6px;">Email address on your account</label>
+        <input type="email" id="del-email" placeholder="you@email.com"
+               style="width:100%; max-width:400px; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; font-family:inherit;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="display:block; font-size:14px; color:var(--text); margin-bottom:6px;">Reason for leaving <span style="color:var(--muted);">(optional)</span></label>
+        <textarea id="del-reason" rows="3" placeholder="Let us know why you&apos;re leaving..."
+                  style="width:100%; max-width:400px; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; font-family:inherit; resize:vertical;"></textarea>
+      </div>
+      <button onclick="submitDeleteRequest()"
+              style="background:var(--red,#c0392b); color:#fff; border:none; padding:12px 28px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+        Submit Deletion Request
+      </button>
+      <div id="del-msg" style="margin-top:16px; font-size:14px;"></div>
+    </div>
+
+    <script>
+    async function submitDeleteRequest() {
+      const email  = document.getElementById('del-email').value.trim();
+      const reason = document.getElementById('del-reason').value.trim();
+      const msg    = document.getElementById('del-msg');
+      if (!email || !email.includes('@')) {
+        msg.style.color = '#e05252';
+        msg.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      msg.style.color = 'var(--muted)';
+      msg.textContent = 'Submitting...';
+      const r = await fetch('/api/delete-request', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, reason})
+      }).then(r => r.json()).catch(() => ({error: 'Network error. Please try again.'}));
+      if (r.error) {
+        msg.style.color = '#e05252';
+        msg.textContent = r.error;
+      } else {
+        document.getElementById('delete-form').innerHTML =
+          '<div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:24px; text-align:center;">' +
+          '<div style="font-size:32px; margin-bottom:12px;">&#x2705;</div>' +
+          '<div style="font-size:16px; font-weight:600; color:var(--text); margin-bottom:8px;">Request Received</div>' +
+          '<div style="font-size:14px; color:var(--muted);">We have received your deletion request for <strong>' + email + '</strong>. ' +
+          'Your account and all associated data will be permanently deleted within 30 days.</div></div>';
+      }
+    }
+    </script>
+  </div>
+</div>
+'''
+
 # ── Privacy Policy page ──────────────────────────────────────────────────────
 PRIVACY_CONTENT = '''
 <div class="container">
@@ -568,6 +640,32 @@ def tokens():
 def privacy():
     return render_template_string(BASE, title='Privacy Policy', active='privacy',
                                   content=render_template_string(PRIVACY_CONTENT))
+
+
+@app.route('/delete-account', methods=['GET'])
+def delete_account():
+    return render_template_string(BASE, title='Delete Account', active='',
+                                  content=DELETE_CONTENT)
+
+
+@app.route('/api/delete-request', methods=['POST'])
+def api_delete_request():
+    email = request.json.get('email', '').strip().lower()
+    reason = request.json.get('reason', '').strip()
+    if not email or '@' not in email:
+        return jsonify({'error': 'Please enter a valid email address.'}), 400
+    fb_auth, db = firebase()
+    if db is not None:
+        try:
+            db.collection('deletionRequests').add({
+                'email': email,
+                'reason': reason,
+                'requestedAt': __import__('datetime').datetime.utcnow().isoformat(),
+                'status': 'pending'
+            })
+        except Exception as e:
+            print(f"Delete request save error: {e}")
+    return jsonify({'ok': True})
 
 
 # ── Gumroad webhook ───────────────────────────────────────────────────────────
