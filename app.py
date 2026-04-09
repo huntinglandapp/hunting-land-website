@@ -363,16 +363,16 @@ TOKENS_CONTENT = '''
       <div class="popular-badge">MOST POPULAR</div>
       <div class="tokens">500</div>
       <div class="token-label">tokens</div>
-      <div class="price">$18.00</div>
-      <div class="per">$0.036 per photo</div>
+      <div class="price">$13.00</div>
+      <div class="per">$0.026 per photo</div>
       <a class="btn btn-green" href="{{ buy_500 }}" target="_blank">Buy Now</a>
     </div>
     <div class="price-card">
       <div class="popular-badge" style="background:var(--tan); color:#111;">BEST VALUE</div>
       <div class="tokens">1,000</div>
       <div class="token-label">tokens</div>
-      <div class="price">$34.00</div>
-      <div class="per">$0.034 per photo</div>
+      <div class="price">$22.00</div>
+      <div class="per">$0.022 per photo</div>
       <a class="btn btn-tan" href="{{ buy_1000 }}" target="_blank">Buy Now</a>
     </div>
   </div>
@@ -380,7 +380,7 @@ TOKENS_CONTENT = '''
   <!-- Custom amount calculator -->
   <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:28px; margin-bottom:24px;">
     <div style="font-size:18px; font-weight:700; color:var(--tan); margin-bottom:6px;">&#x1F9EE; Custom Amount</div>
-    <div style="font-size:13px; color:var(--muted); margin-bottom:20px;">Need more tokens? Choose any amount in increments of 500 — the more you buy, the better the rate.</div>
+    <div style="font-size:13px; color:var(--muted); margin-bottom:20px;">Need more tokens? Choose any amount in increments of 1,000.</div>
 
     <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
       <div style="display:flex; align-items:center; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
@@ -392,25 +392,25 @@ TOKENS_CONTENT = '''
       </div>
       <div>
         <div style="font-size:28px; font-weight:800; color:var(--text);" id="custom-tokens">1,000 tokens</div>
-        <div style="font-size:13px; color:var(--muted);" id="custom-rate">$0.034 per photo</div>
+        <div style="font-size:13px; color:var(--muted);" id="custom-rate">$0.022 per photo</div>
       </div>
       <div style="margin-left:auto; text-align:right;">
         <div style="font-size:13px; color:var(--muted);">Total</div>
-        <div style="font-size:32px; font-weight:800; color:var(--tan);" id="custom-price">$34.00</div>
+        <div style="font-size:32px; font-weight:800; color:var(--tan);" id="custom-price">$22.00</div>
       </div>
     </div>
 
     <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:16px; font-size:13px; color:var(--muted);">
-      &#x2139;&#xFE0F;&nbsp; When you click Buy, Gumroad will open. Enter <strong id="custom-price-note">$34.00</strong> as the payment amount. Your tokens will be credited automatically based on the amount paid.
+      &#x2139;&#xFE0F;&nbsp; When you click Buy, Gumroad will open. Enter <strong id="custom-price-note">$22.00</strong> as the payment amount. Your tokens will be credited automatically based on the amount paid.
     </div>
 
-    <a id="custom-buy-btn" class="btn btn-green" href="{{ buy_custom }}" target="_blank" style="display:inline-block;">Buy <span id="custom-btn-tokens">1,000</span> Tokens for <span id="custom-btn-price">$34.00</span></a>
+    <a id="custom-buy-btn" class="btn btn-green" href="{{ buy_custom }}" target="_blank" style="display:inline-block;">Buy <span id="custom-btn-tokens">1,000</span> Tokens for <span id="custom-btn-price">$22.00</span></a>
   </div>
 
   <script>
   var customPacks = 1;
   var PACK_SIZE  = 1000;
-  var PACK_PRICE = 34.00;
+  var PACK_PRICE = 22.00;
 
   function changeCustom(delta) {
     customPacks = Math.max(1, customPacks + delta);
@@ -692,7 +692,7 @@ def webhook_gumroad():
         # Check if this is a custom-amount purchase — calculate tokens from price paid
         if product_slug == 'tokens-custom':
             price_cents = int(data.get('price', 0))   # Gumroad sends price in cents
-            tokens_to_add = round(price_cents / 3400) * 1000  # $34.00 = 1000 tokens
+            tokens_to_add = round(price_cents / 2200) * 1000  # $22.00 = 1000 tokens
             if tokens_to_add <= 0:
                 return jsonify({'error': 'Could not determine token amount from price'}), 400
         else:
