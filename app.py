@@ -6,9 +6,10 @@ Deploy to Render.com (free tier)
 Environment variables to set in Render dashboard:
   FIREBASE_SERVICE_ACCOUNT  — contents of your Firebase service account JSON (one line)
   GUMROAD_SELLER_ID         — your Gumroad seller ID (found in Gumroad Settings)
-  GUMROAD_LINK_50           — Gumroad checkout URL for 50-token pack
-  GUMROAD_LINK_200          — Gumroad checkout URL for 200-token pack
   GUMROAD_LINK_500          — Gumroad checkout URL for 500-token pack
+  GUMROAD_LINK_1000         — Gumroad checkout URL for 1000-token pack
+  GUMROAD_LINK_10000        — Gumroad checkout URL for 10000-token pack
+  GUMROAD_LINK_CUSTOM       — Gumroad checkout URL for custom/pay-what-you-want pack
 """
 
 import os
@@ -20,17 +21,17 @@ app = Flask(__name__)
 # ── Gumroad product config ───────────────────────────────────────────────────
 # These permalink slugs must match exactly what you set on Gumroad
 TOKEN_PACKS = {
-    'tokens-200':  200,
-    'tokens-500':  500,
-    'tokens-1000': 1000,
+    'tokens-500':   500,
+    'tokens-1000':  1000,
+    'tokens-10000': 10000,
 }
 
 GUMROAD_SELLER_ID = os.environ.get('GUMROAD_SELLER_ID', '')
 
 BUY_LINKS = {
-    200:      os.environ.get('GUMROAD_LINK_200',    '#'),
     500:      os.environ.get('GUMROAD_LINK_500',    '#'),
     1000:     os.environ.get('GUMROAD_LINK_1000',   '#'),
+    10000:    os.environ.get('GUMROAD_LINK_10000',  '#'),
     'custom': os.environ.get('GUMROAD_LINK_CUSTOM', '#'),  # "Pay what you want" Gumroad product
 }
 
@@ -170,6 +171,7 @@ BASE = '''<!DOCTYPE html>
     <a href="/" class="{{ 'active' if active == 'home' else '' }}">Home</a>
     <a href="/photo-sorter" class="{{ 'active' if active == 'sorter' else '' }}">Photo Sorter</a>
     <a href="/tokens" class="{{ 'active' if active == 'tokens' else '' }}">Buy Tokens</a>
+    <a href="/instructions" class="{{ 'active' if active == 'instructions' else '' }}">Instructions</a>
     <a href="/privacy" class="{{ 'active' if active == 'privacy' else '' }}">Privacy</a>
   </div>
 </nav>
@@ -181,6 +183,7 @@ BASE = '''<!DOCTYPE html>
     <a href="/">Home</a>
     <a href="/photo-sorter">Photo Sorter</a>
     <a href="/tokens">Buy Tokens</a>
+    <a href="/instructions">Instructions</a>
     <a href="/privacy">Privacy Policy</a>
   </div>
   <div style="margin-top:8px;"><a href="/delete-account">Delete My Account</a></div>
@@ -353,27 +356,27 @@ TOKENS_CONTENT = '''
   <div class="section-title">Token Packs</div>
   <div class="price-grid">
     <div class="price-card">
-      <div class="tokens">200</div>
+      <div class="tokens">500</div>
       <div class="token-label">tokens</div>
-      <div class="price">$8.00</div>
-      <div class="per">$0.04 per photo</div>
-      <a class="btn btn-ghost" href="{{ buy_200 }}" target="_blank">Buy Now</a>
+      <div class="price">$5.00</div>
+      <div class="per">$0.01 per photo</div>
+      <a class="btn btn-ghost" href="{{ buy_500 }}" target="_blank">Buy Now</a>
     </div>
     <div class="price-card popular">
       <div class="popular-badge">MOST POPULAR</div>
-      <div class="tokens">500</div>
+      <div class="tokens">1,000</div>
       <div class="token-label">tokens</div>
-      <div class="price">$13.00</div>
-      <div class="per">$0.026 per photo</div>
-      <a class="btn btn-green" href="{{ buy_500 }}" target="_blank">Buy Now</a>
+      <div class="price">$10.00</div>
+      <div class="per">$0.01 per photo</div>
+      <a class="btn btn-green" href="{{ buy_1000 }}" target="_blank">Buy Now</a>
     </div>
     <div class="price-card">
       <div class="popular-badge" style="background:var(--tan); color:#111;">BEST VALUE</div>
-      <div class="tokens">1,000</div>
+      <div class="tokens">10,000</div>
       <div class="token-label">tokens</div>
-      <div class="price">$22.00</div>
-      <div class="per">$0.022 per photo</div>
-      <a class="btn btn-tan" href="{{ buy_1000 }}" target="_blank">Buy Now</a>
+      <div class="price">$75.00</div>
+      <div class="per">$0.0075 per photo</div>
+      <a class="btn btn-tan" href="{{ buy_10000 }}" target="_blank">Buy Now</a>
     </div>
   </div>
 
@@ -392,25 +395,25 @@ TOKENS_CONTENT = '''
       </div>
       <div>
         <div style="font-size:28px; font-weight:800; color:var(--text);" id="custom-tokens">1,000 tokens</div>
-        <div style="font-size:13px; color:var(--muted);" id="custom-rate">$0.022 per photo</div>
+        <div style="font-size:13px; color:var(--muted);" id="custom-rate">$0.0100 per photo</div>
       </div>
       <div style="margin-left:auto; text-align:right;">
         <div style="font-size:13px; color:var(--muted);">Total</div>
-        <div style="font-size:32px; font-weight:800; color:var(--tan);" id="custom-price">$22.00</div>
+        <div style="font-size:32px; font-weight:800; color:var(--tan);" id="custom-price">$10.00</div>
       </div>
     </div>
 
     <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:16px; font-size:13px; color:var(--muted);">
-      &#x2139;&#xFE0F;&nbsp; When you click Buy, Gumroad will open. Enter <strong id="custom-price-note">$22.00</strong> as the payment amount. Your tokens will be credited automatically based on the amount paid.
+      &#x2139;&#xFE0F;&nbsp; When you click Buy, Gumroad will open. Enter <strong id="custom-price-note">$10.00</strong> as the payment amount. Your tokens will be credited automatically based on the amount paid.
     </div>
 
-    <a id="custom-buy-btn" class="btn btn-green" href="{{ buy_custom }}" target="_blank" style="display:inline-block;">Buy <span id="custom-btn-tokens">1,000</span> Tokens for <span id="custom-btn-price">$22.00</span></a>
+    <a id="custom-buy-btn" class="btn btn-green" href="{{ buy_custom }}" target="_blank" style="display:inline-block;">Buy <span id="custom-btn-tokens">1,000</span> Tokens for <span id="custom-btn-price">$10.00</span></a>
   </div>
 
   <script>
   var customPacks = 1;
   var PACK_SIZE  = 1000;
-  var PACK_PRICE = 22.00;
+  var PACK_PRICE = 10.00;
 
   function changeCustom(delta) {
     customPacks = Math.max(1, customPacks + delta);
@@ -605,6 +608,195 @@ PRIVACY_CONTENT = '''
 '''
 
 
+# ── Instructions page ────────────────────────────────────────────────────────
+INSTRUCTIONS_CONTENT = '''
+<div class="hero" style="padding: 48px 24px;">
+  <h1 style="font-size: clamp(24px, 4vw, 38px);">&#x1F4D6; How to Use Hunting Land Apps</h1>
+  <p>Step-by-step guides for the Hunting Land App and the Trail Camera Photo Sorter.</p>
+</div>
+
+<div class="container">
+
+  <!-- Quick nav -->
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:40px;">
+    <div style="font-size:14px; font-weight:700; color:var(--tan); margin-bottom:12px;">Jump to a section</div>
+    <div style="display:flex; flex-wrap:wrap; gap:10px;">
+      <a href="#getting-started" style="color:var(--green); text-decoration:none; font-size:14px;">Getting Started</a>
+      <span style="color:var(--border);">|</span>
+      <a href="#map" style="color:var(--green); text-decoration:none; font-size:14px;">Using the Map</a>
+      <span style="color:var(--border);">|</span>
+      <a href="#stands" style="color:var(--green); text-decoration:none; font-size:14px;">Deer Stands</a>
+      <span style="color:var(--border);">|</span>
+      <a href="#cameras" style="color:var(--green); text-decoration:none; font-size:14px;">Trail Cameras</a>
+      <span style="color:var(--border);">|</span>
+      <a href="#harvest" style="color:var(--green); text-decoration:none; font-size:14px;">Logging Harvests</a>
+      <span style="color:var(--border);">|</span>
+      <a href="#trails" style="color:var(--green); text-decoration:none; font-size:14px;">Recording Trails</a>
+      <span style="color:var(--border);">|</span>
+      <a href="#sharing" style="color:var(--green); text-decoration:none; font-size:14px;">Sharing Your Area</a>
+      <span style="color:var(--border);">|</span>
+      <a href="#photo-sorter" style="color:var(--green); text-decoration:none; font-size:14px;">Photo Sorter</a>
+    </div>
+  </div>
+
+  <!-- Getting Started -->
+  <div id="getting-started" class="section-title">&#x1F4F1; Getting Started</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>Download &amp; Sign In</h2>
+    <p>Download the Hunting Land App from the Google Play Store. Open it and create a free account with your email address and a password. You can also sign in with an existing account if you have one.</p>
+
+    <h2>Create or Join a Hunting Area</h2>
+    <p>When you first open the app, you will be asked to create a new hunting area or join one using an invite code.</p>
+    <ul>
+      <li><strong>Create a new area:</strong> Tap <em>Create Group</em>, enter a name for your property (e.g. &ldquo;Back 40&rdquo; or &ldquo;Smith Farm&rdquo;), and tap Create. You are now the owner of that hunting area.</li>
+      <li><strong>Join an existing area:</strong> If a hunting partner already has an area set up, ask them for their 6-digit invite code. Tap <em>Join Group</em>, enter the code, and tap Join.</li>
+    </ul>
+
+    <h2>Set Your Default Map Location</h2>
+    <p>Go to the <strong>Settings tab</strong> (gear icon) and set a default map location so the map opens centered on your property each time. You can set it using your GPS, entering a zip code, or tapping the map.</p>
+  </div>
+
+  <!-- Map -->
+  <div id="map" class="section-title">&#x1F5FA; Using the Map</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>Navigating the Map</h2>
+    <p>The map opens in satellite/hybrid view so you can see your actual land. Pinch to zoom in and out. Tap and drag to pan around. Your current GPS location is shown as a blue dot.</p>
+
+    <h2>My Location Button</h2>
+    <p>Tap the <strong>location arrow button</strong> in the bottom-left corner to jump the map back to your current GPS position.</p>
+
+    <h2>Auto Re-center While Walking</h2>
+    <p>When you are actively moving on your property with the map screen open, the map will automatically re-center when you get close to the edge of the screen — so you never lose your position while scouting.</p>
+
+    <h2>The + Action Button</h2>
+    <p>The <strong>+ button</strong> in the bottom-right corner opens a speed dial menu with all the things you can add or log:</p>
+    <ul>
+      <li>Add Stand</li>
+      <li>Add Camera</li>
+      <li>Add Sign (rubs, scrapes, beds)</li>
+      <li>Draw Food Plot</li>
+      <li>Record Trail</li>
+      <li>Log Harvest</li>
+      <li>Hunt Journal</li>
+    </ul>
+
+    <h2>Property Lookup</h2>
+    <p>Long-press anywhere on the map to look up the county assessor for that location — useful for identifying neighboring property owners.</p>
+  </div>
+
+  <!-- Stands -->
+  <div id="stands" class="section-title">&#x1F333; Deer Stands</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>Adding a Stand</h2>
+    <p>Tap the <strong>+ button</strong> and choose <em>Add Stand</em>. The map enters placement mode. Tap the exact spot on the map where your stand is located, or tap <em>Use My GPS Location</em> to drop a pin at your current position. Enter a name for the stand and tap Save.</p>
+
+    <h2>Stand Options</h2>
+    <p>Tap any stand marker on the map to open its options:</p>
+    <ul>
+      <li><strong>Log Harvest from this stand</strong> — opens the harvest log with the stand pre-filled</li>
+      <li><strong>Log Journal Entry from this stand</strong> — opens the hunt journal with the stand pre-filled</li>
+      <li><strong>View Harvests from this stand</strong> — shows all harvests recorded at that stand</li>
+      <li><strong>Edit Stand Name</strong> — rename the stand</li>
+      <li><strong>Delete Stand</strong> — permanently removes the stand and its marker</li>
+    </ul>
+  </div>
+
+  <!-- Cameras -->
+  <div id="cameras" class="section-title">&#x1F4F7; Trail Cameras</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>Adding a Camera</h2>
+    <p>Tap the <strong>+ button</strong> and choose <em>Add Camera</em>. Place the pin on the map at your camera location. Enter a name (e.g. &ldquo;North Field&rdquo;) and tap Save. The camera will appear as a marker on your map.</p>
+
+    <h2>Viewing &amp; Uploading Photos</h2>
+    <p>Tap a camera marker and choose <em>View / Add Photos</em>. You can scroll through all photos uploaded to that camera, or upload new ones directly from your phone.</p>
+
+    <h2>Using the Photo Sorter</h2>
+    <p>The <a href="/photo-sorter" style="color:var(--green);">Trail Camera Photo Sorter</a> app (Windows/Mac) uses AI to automatically sort your trail camera SD card photos into animal folders. After sorting, you can upload the deer photos directly to the matching camera in the Hunting Land app. See the <a href="#photo-sorter" style="color:var(--green);">Photo Sorter section</a> below for full instructions.</p>
+  </div>
+
+  <!-- Harvest -->
+  <div id="harvest" class="section-title">&#x1F98C; Logging Harvests</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>Recording a Harvest</h2>
+    <p>Tap the <strong>+ button</strong> and choose <em>Log Harvest</em>, or tap a stand marker and choose <em>Log Harvest from this stand</em>. Fill in the details:</p>
+    <ul>
+      <li>Date</li>
+      <li>Stand location</li>
+      <li>Hunter name</li>
+      <li>Weapon used</li>
+      <li>Animal type (Buck, Doe, Turkey, etc.)</li>
+      <li>Points / antler score (for bucks)</li>
+      <li>Photo (optional)</li>
+      <li>Notes</li>
+    </ul>
+
+    <h2>Viewing Harvest History</h2>
+    <p>Tap the <strong>Harvests tab</strong> to see all harvests logged for your hunting area. Use the filters to sort by stand, year, hunter, or animal type.</p>
+
+    <h2>DNR Registration</h2>
+    <p>When logging a harvest, there is a <em>Register with DNR</em> option that links directly to the official wildlife agency website for all 50 states.</p>
+  </div>
+
+  <!-- Trails -->
+  <div id="trails" class="section-title">&#x1F9ED; Recording Trails</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>Starting a Trail Recording</h2>
+    <p>Tap the <strong>+ button</strong> and choose <em>Record Trail</em>. A red recording banner appears at the top of the screen. The app begins recording your GPS path as you walk. The trail is drawn on the map in real time.</p>
+
+    <h2>Background Recording</h2>
+    <p>Trail recording runs as a background service — you can lock your phone or switch apps and the GPS will keep collecting your route. The trail is saved when you stop and save.</p>
+
+    <h2>Stopping &amp; Saving</h2>
+    <p>When you are done walking the trail, tap <em>Stop &amp; Save</em> on the recording banner. Enter a name for the trail (e.g. &ldquo;Food Plot Loop&rdquo;) and tap Save. The trail appears as a blue line on the map with the recorded distance.</p>
+
+    <h2>Trail Options</h2>
+    <p>Tap any trail line on the map to see the recorded distance and options to <em>Rename</em> or <em>Delete</em> the trail.</p>
+  </div>
+
+  <!-- Sharing -->
+  <div id="sharing" class="section-title">&#x1F465; Sharing Your Hunting Area</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>Invite Code</h2>
+    <p>Every hunting area has a unique 6-digit invite code. Go to the <strong>Settings tab</strong> and tap <em>Copy Invite Code</em>. Share that code with your hunting partners. They enter it in the app under <em>Join Group</em> to see your stands, cameras, food plots, and shared data.</p>
+
+    <p style="color:var(--muted); font-size:13px;">Note: The invite code feature requires a Standard plan or higher subscription.</p>
+
+    <h2>Multiple Hunting Areas</h2>
+    <p>You can be a member of multiple hunting areas. Tap <em>Switch Hunting Area</em> in the Settings tab to switch between them.</p>
+  </div>
+
+  <!-- Photo Sorter -->
+  <div id="photo-sorter" class="section-title">&#x1F4F7; Trail Camera Photo Sorter</div>
+  <div class="prose" style="max-width:100%; margin-bottom:48px;">
+    <h2>What It Does</h2>
+    <p>The Photo Sorter is a Windows/Mac desktop app that uses Claude AI to look at every photo on your trail camera SD card and automatically sort them into folders by animal — Buck, Doe, Turkey, Bear, and more. It can sort hundreds of photos in minutes.</p>
+
+    <h2>Step 1 — Download &amp; Install</h2>
+    <p>Download the installer from the <a href="/photo-sorter#download" style="color:var(--green);">Photo Sorter page</a>. Run the installer on your Windows computer. No technical knowledge is required.</p>
+
+    <h2>Step 2 — Get Tokens</h2>
+    <p>The Photo Sorter uses tokens — one token per photo. <a href="/tokens" style="color:var(--green);">Buy a token pack</a> before sorting. Tokens are tied to your account and never expire.</p>
+
+    <h2>Step 3 — Log In</h2>
+    <p>Open the Photo Sorter and sign in with your Hunting Land app email and password. If you don&apos;t have a Hunting Land app account, you can create a free Photo Sorter account directly from the login screen.</p>
+
+    <h2>Step 4 — Select Your Photos Folder</h2>
+    <p>Copy your trail camera SD card photos to a folder on your computer. In the Photo Sorter, click <em>Browse</em> and select that folder. Also select your state so the app knows which animals to look for in your region.</p>
+
+    <h2>Step 5 — Scan</h2>
+    <p>Click <em>Scan Photos</em>. The AI analyzes every photo and shows you the results — each photo labeled with the animal detected. You can correct any mistakes before moving the files.</p>
+
+    <h2>Step 6 — Move Files</h2>
+    <p>Click <em>Move Files into Animal Folders</em>. The photos are sorted into subfolders inside your original folder (e.g. Buck/, Doe/, Turkey/, No Animal/).</p>
+
+    <h2>Step 7 — Upload to App (Optional)</h2>
+    <p>After sorting, you can upload the deer photos directly to a trail camera in your Hunting Land app. Select your hunting area from the dropdown (loaded automatically from your account), choose the camera, and click Upload. The photos will appear in the app for all your hunting partners to see.</p>
+  </div>
+
+</div>
+'''
+
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 ANIMALS = [
     'Buck', 'Doe', 'Fawn',
@@ -630,11 +822,16 @@ def photo_sorter():
 @app.route('/tokens')
 def tokens():
     content = render_template_string(TOKENS_CONTENT,
-                                     buy_200=BUY_LINKS[200],
                                      buy_500=BUY_LINKS[500],
                                      buy_1000=BUY_LINKS[1000],
+                                     buy_10000=BUY_LINKS[10000],
                                      buy_custom=BUY_LINKS['custom'])
     return render_template_string(BASE, title='Buy Tokens', active='tokens', content=content)
+
+@app.route('/instructions')
+def instructions():
+    return render_template_string(BASE, title='Instructions', active='instructions',
+                                  content=INSTRUCTIONS_CONTENT)
 
 @app.route('/privacy')
 def privacy():
@@ -692,7 +889,7 @@ def webhook_gumroad():
         # Check if this is a custom-amount purchase — calculate tokens from price paid
         if product_slug == 'tokens-custom':
             price_cents = int(data.get('price', 0))   # Gumroad sends price in cents
-            tokens_to_add = round(price_cents / 2200) * 1000  # $22.00 = 1000 tokens
+            tokens_to_add = round(price_cents / 1000) * 1000  # $10.00 = 1000 tokens
             if tokens_to_add <= 0:
                 return jsonify({'error': 'Could not determine token amount from price'}), 400
         else:
