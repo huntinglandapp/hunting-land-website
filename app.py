@@ -358,8 +358,8 @@ TOKENS_CONTENT = '''
     <div class="price-card">
       <div class="tokens">500</div>
       <div class="token-label">tokens</div>
-      <div class="price">$5.00</div>
-      <div class="per">$0.01 per photo</div>
+      <div class="price">$6.00</div>
+      <div class="per">$0.012 per photo</div>
       <a class="btn btn-ghost" href="{{ buy_500 }}" target="_blank">Buy Now</a>
     </div>
     <div class="price-card popular">
